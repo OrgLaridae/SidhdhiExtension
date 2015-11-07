@@ -1,5 +1,6 @@
 package org.mora.cep;
 
+import org.apache.log4j.Logger;
 import org.wso2.siddhi.core.config.SiddhiContext;
 import org.wso2.siddhi.core.exception.QueryCreationException;
 import org.wso2.siddhi.core.executor.function.FunctionExecutor;
@@ -8,15 +9,16 @@ import org.wso2.siddhi.query.api.extension.annotation.SiddhiExtension;
 
 @SiddhiExtension(namespace = "radar", function = "boundary")
 public class CustomFunctionExtention extends FunctionExecutor {
-    int matrixSize=240;
+    Logger log = Logger.getLogger(CustomFunctionExtention.class);
+    int matrixSize = 240;
     double[][] matrix;
-    int minRow=240,maxRow=0,minCol=240,maxCol=0;
-    int threshold=1;
+    int minRow = 240, maxRow = 0, minCol = 240, maxCol = 0;
+    int threshold = 1;
     Attribute.Type returnType;
 
     @Override
     public void init(Attribute.Type[] types, SiddhiContext siddhiContext) {
-        matrix=new double[matrixSize][matrixSize];
+        matrix = new double[matrixSize][matrixSize];
         for (Attribute.Type attributeType : types) {
             if (attributeType == Attribute.Type.STRING) {
                 returnType = attributeType;
@@ -29,31 +31,37 @@ public class CustomFunctionExtention extends FunctionExecutor {
 
     @Override
     protected Object process(Object o) {
-        String data=o.toString();
-        String[] zValues=data.split(",");
-        double reflectVal=0;
-        int k=1;
-        for(int i=0;i<matrixSize;i++){
-            for(int j=0;j<matrixSize;j++){
-                reflectVal=Double.parseDouble(zValues[k]);
-                if(reflectVal>threshold){
-                    if(reflectVal>maxRow){
-                        maxRow=i;
-                    }
-                    if(reflectVal<minRow){
-                        minRow=i;
-                    }
-                    if(reflectVal>maxCol){
-                        maxCol=j;
-                    }
-                    if(reflectVal<minCol){
-                        minCol=j;
+        if (o instanceof Object) {
+            String data = o.toString();
+            String[] zValues = data.split(",");
+            double reflectVal = 0;
+            int k = 1;
+            if (zValues.length > 1) {
+                for (int i = 0; i < matrixSize; i++) {
+                    for (int j = 0; j < matrixSize; j++) {
+                        reflectVal = Double.parseDouble(zValues[k]);
+                        if (reflectVal > threshold) {
+                            if (i > maxRow) {
+                                maxRow = i;
+                            }
+                            if (i < minRow) {
+                                minRow = i;
+                            }
+                            if (j > maxCol) {
+                                maxCol = j;
+                            }
+                            if (j < minCol) {
+                                minCol = j;
+                            }
+                        }
+                        k++;
                     }
                 }
-                k++;
             }
+
         }
-        return minRow+" "+maxRow+" "+minCol+" "+maxCol;
+
+        return minRow + " " + maxRow + " " + minCol + " " + maxCol;
     }
 
     public void destroy() {

@@ -24,9 +24,13 @@ public class ReadImageFile extends FunctionExecutor {
 
     @Override
     protected Object process(Object o) {
-        String data=o.toString();
-        String[] zValues=data.split(",");
-        return zValues[0];
+        String file="";
+        if (o instanceof Object) {
+                String data = o.toString();
+                String[] zValues = data.split(",");
+                file=zValues[0];
+        } 
+        return file;
     }
 
     public void destroy() {
